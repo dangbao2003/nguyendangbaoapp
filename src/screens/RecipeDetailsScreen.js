@@ -12,12 +12,75 @@ import {
   Alert,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const RecipeDetailsScreen = ({ navigation, route }) => {
   const { item } = route.params;
   const [productDetails, setProductDetails] = useState(null);
+
+  // Khai báo state cho thông tin giỏ hàng
   const [cartItems, setCartItems] = useState([]);
+
+  // useEffect để load thông tin giỏ hàng từ AsyncStorage khi màn hình được render
+  useEffect(() => {
+    const loadCartItems = async () => {
+      try {
+        // Lấy thông tin giỏ hàng từ AsyncStorage
+        const savedCartItems = await AsyncStorage.getItem("cartItems");
+        if (savedCartItems !== null) {
+          // Nếu có dữ liệu trong AsyncStorage, cập nhật state cho giỏ hàng
+          setCartItems(JSON.parse(savedCartItems));
+        }
+      } catch (error) {
+        console.error("Error loading cart items:", error);
+      }
+    };
+
+    loadCartItems();
+  }, []);
+
+  // Hàm để thêm sản phẩm vào giỏ hàng và lưu vào AsyncStorage
+  const addToCart = () => {
+    if (productDetails) {
+      const existingItem = cartItems.find((item) => item.id === productDetails.id);
+  
+      if (existingItem) {
+        // If the item already exists in the cart, update its quantity
+        const updatedCart = cartItems.map((item) => {
+          if (item.id === existingItem.id) {
+            return { ...item, quantity: item.quantity + 1 };
+          }
+          return item;
+        });
+        setCartItems(updatedCart);
+        saveCartToAsyncStorage(updatedCart); // Save the updated cart to AsyncStorage
+      } else {
+        // If the item doesn't exist in the cart, add it with quantity 1
+        const updatedCart = [...cartItems, { ...productDetails, quantity: 1 }];
+        setCartItems(updatedCart);
+        saveCartToAsyncStorage(updatedCart); // Save the updated cart to AsyncStorage
+      }
+    }
+  };
+  
+  // Function to save cart items to AsyncStorage
+  const saveCartToAsyncStorage = async (updatedCart) => {
+    try {
+      await AsyncStorage.setItem("cartItems", JSON.stringify(updatedCart));
+      // Show an alert when the item is successfully added to the cart
+      Alert.alert("Thông báo", "Sản phẩm đã được thêm vào giỏ hàng.");
+    } catch (error) {
+      console.error("Error saving cart items:", error);
+    }
+  };
+  
+
+  // Hook to monitor changes in cartItems and save to AsyncStorage
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      saveCartToAsyncStorage(cartItems);
+    }
+  }, [cartItems]);
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -34,14 +97,6 @@ const RecipeDetailsScreen = ({ navigation, route }) => {
 
     fetchProductDetails();
   }, [item.id]);
-
-  const addToCart = () => {
-    if (productDetails) {
-      // Kiểm tra xem sản phẩm đã được tải chưa
-      setCartItems([...cartItems, productDetails]); // Thêm sản phẩm vào giỏ hàng
-      // Có thể thêm logic thông báo khi mua hàng thành công ở đây
-    }
-  };
 
   const navigateToCart = () => {
     navigation.navigate("CartList", { cartItems }); // Chuyển sang màn hình giỏ hàng và truyền danh sách sản phẩm đã chọn
@@ -276,18 +331,23 @@ const RecipeDetailsScreen = ({ navigation, route }) => {
                 />
               </TouchableOpacity>
             </Pressable> */}
-          {/* Nút để thêm sản phẩm vào giỏ hàng */}
-          <TouchableOpacity onPress={addToCart} style={styles.addToCartButton}>
-            <Text style={styles.addToCartButtonText}>Thêm vào giỏ hàng</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", marginTop: 20 }}>
+            {/* Nút để thêm sản phẩm vào giỏ hàng */}
+            <TouchableOpacity
+              onPress={addToCart}
+              style={styles.addToCartButton}
+            >
+              <Text style={styles.addToCartButtonText}>Thêm vào giỏ hàng</Text>
+            </TouchableOpacity>
 
-          {/* Nút để chuyển sang màn hình giỏ hàng */}
-          <TouchableOpacity
-            onPress={navigateToCart}
-            style={styles.viewCartButton}
-          >
-            <Text style={styles.viewCartButtonText}>Xem giỏ hàng</Text>
-          </TouchableOpacity>
+            {/* Nút để chuyển sang màn hình giỏ hàng */}
+            <TouchableOpacity
+              onPress={navigateToCart}
+              style={styles.viewCartButton}
+            >
+              <Text style={styles.viewCartButtonText}>Xem giỏ hàng</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
@@ -313,5 +373,32 @@ const styles = StyleSheet.create({
 
   cartIcon: {
     fontSize: 30,
+  },
+
+  addToCartButton: {
+    backgroundColor: "#f4511e",
+    paddingVertical: 10,
+    paddingHorizontal: 10, // Điều chỉnh khoảng cách ngắn hơn
+    borderRadius: 30,
+    alignSelf: "flex-start", // Canh theo bên trái
+    marginRight: 10, // Khoảng cách giữa nút "Thêm vào giỏ hàng" và "Xem giỏ hàng"
+  },
+  addToCartButtonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+  },
+
+  viewCartButton: {
+    backgroundColor: "#f4511e",
+    paddingVertical: 10,
+    paddingHorizontal: 60, // Điều chỉnh khoảng cách ngắn hơn
+    borderRadius: 30,
+    alignSelf: "flex-start", // Canh theo bên trái
+  },
+  viewCartButtonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
   },
 });
