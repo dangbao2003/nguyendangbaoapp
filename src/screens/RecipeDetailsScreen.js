@@ -67,8 +67,6 @@ const RecipeDetailsScreen = ({ navigation, route }) => {
   const saveCartToAsyncStorage = async (updatedCart) => {
     try {
       await AsyncStorage.setItem("cartItems", JSON.stringify(updatedCart));
-      // Show an alert when the item is successfully added to the cart
-      Alert.alert("Thông báo", "Sản phẩm đã được thêm vào giỏ hàng.");
     } catch (error) {
       console.error("Error saving cart items:", error);
     }

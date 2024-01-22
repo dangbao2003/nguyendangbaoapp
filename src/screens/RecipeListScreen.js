@@ -12,18 +12,6 @@ const RecipeListScreen = ( ) => {
     <SafeAreaView style={{ flex: 1, marginHorizontal: 16 }}>
       {/* render header */}
       <Header headerText={"Hi, Bảo "} headerIcon={"bell-o"} />
-
-      {/* Search Filter */}
-      <SearchFilter icon="search" placeholder={"Tìm kiếm"} />
-
-      {/* Categories filter */}
-
-      <View style={{ marginTop: 22 }}>
-        <Text style={{ fontSize: 22, fontWeight: "bold" }}>Categories</Text>
-        {/* Categories list */}
-        <CategoriesFilter />
-      </View>
-
       {/* Recipe List Filter */}
 
       <View style={{ marginTop: 22, flex: 1 }}>
